@@ -32,6 +32,7 @@ public class FieldLeaseServiceImp implements IFieldLeaseService {
     private FieldMapper fieldMapper;
 
     @Override
+    // test
     public void addFieldLease(FieldLeaseVo fieldLeaseDTO) {
         Long time = System.currentTimeMillis();
         FieldLease fieldLease = new FieldLease().setBorrowTime(time)
