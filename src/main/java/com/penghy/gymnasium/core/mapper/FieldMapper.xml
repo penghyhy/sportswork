@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.penghy.gymnasium.core.mapper.FieldMapper">
+    <!--添加场地-->
+    <insert id="addField" useGeneratedKeys="true" keyProperty="id" parameterType="Field">
+        <selectKey keyProperty="id" resultType="String" order="BEFORE">
+            select replace(uuid(),'-','') from dual
+        </selectKey>
+        INSERT INTO field (id, name, state)
+        VALUES (#{id,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, #{state,jdbcType=VARCHAR})
+    </insert>
+
+    <!--删除场地-->
+    <delete id="deleteField" parameterType="String">
+        DELETE FROM field
+        WHERE id = #{id}
+    </delete>
+
+    <!--设置场地所有信息-->
+    <update id="setField" parameterType="Field">
+        UPDATE field
+        SET name = #{name},
+            state = #{state}
+        WHERE id = #{id}
+    </update>
+
+    <!--设置场地状态-->
+    <update id="setFieldState">
+        UPDATE field
+        SET state = #{state}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 一对多关联查询 -->
+    <resultMap id="fieldMap" type="Field">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="state" column="state"/>
+
+        <collection property="timeAxes" ofType="TimeAxis">
+            <id column="t_id" property="id"/>
+            <result column="start_time" property="startTime"/>
+            <result column="end_time" property="endTime"/>
+        </collection>
+    </resultMap>
+
+    <!--获取所有场地-->
+    <select id="getAllFields" resultMap="fieldMap">
+        SELECT
+            field.id,
+            field.name,
+            field.state,
+            time_axis.id t_id,
+            time_axis.start_time,
+            time_axis.end_time
+        FROM field
+            LEFT OUTER JOIN time_axis ON field.id = time_axis.field_id
+        ORDER BY (field.id + 0) ASC
+    </select>
+
+    <!--获取场地信息-->
+    <select id="getField" resultMap="fieldMap">
+        SELECT
+            field.id,
+            field.name,
+            field.state,
+            time_axis.id t_id,
+            time_axis.start_time,
+            time_axis.end_time
+        FROM field
+            LEFT OUTER JOIN time_axis ON field.id = time_axis.field_id
+        WHERE field.id = #{id}
+    </select>
+
+    <!--通过名字获取场地信息-->
+    <select id="getFieldByNameLike" resultMap="fieldMap" parameterType="String">
+        SELECT
+        field.id,
+        field.name,
+        field.state,
+        time_axis.id t_id,
+        time_axis.start_time,
+        time_axis.end_time
+        FROM field
+        LEFT OUTER JOIN time_axis ON field.id = time_axis.field_id
+        WHERE 1=1
+        <if test='_parameter!=""'>
+            AND name like "%"#{_parameter}"%"
+        </if>
+    </select>
+
+    <!--获取场地数量-->
+    <select id="getCount" resultType="long">
+        SELECT COUNT(1)
+        FROM field
+    </select>
+
+    <!--添加时间轴-->
+    <insert id="addTimeAxis" useGeneratedKeys="true" keyProperty="id" parameterType="TimeAxis">
+        <selectKey keyProperty="id" resultType="String" order="BEFORE">
+            select replace(uuid(),'-','') from dual
+        </selectKey>
+        INSERT INTO time_axis (id, start_time, end_time, field_id, field_lease_id)
+        VALUES (#{id}, #{startTime}, #{endTime}, #{fieldId}, #{fieldLeaseId})
+    </insert>
+</mapper>
